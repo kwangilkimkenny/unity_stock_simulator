@@ -8,14 +8,38 @@ using System.Linq;
 public class Window_Graph : MonoBehaviour
 {
 
-   [SerializeField] private Sprite circleSprite;
+    [SerializeField] private Sprite circleSprite;
     private RectTransform graphContainer;
-    
+
 
     public void Awake()
     {
+
+        Debug.Log("Start Coroutine 01");
+        //코루틴을 사용해서 데이터를 반복생성, 그래프그리기,  삭제 해보자
+
+
+
+
         graphContainer = transform.Find("graphContainer").GetComponent<RectTransform>();
-        CreateCircle(new Vector2 (200, 200));
+        CreateCircle(new Vector2(200, 200));
+
+        List<int> valueList; //valueList라는 이름으로 정수형 리스트를 선언하고
+        valueList = new List<int>(); //리스트로 공간을 만들고
+
+        int[] RandList = GetRandomInt(20, -30, 30); //주식값 생성함수 활용하여 20개를 생성한 후 
+
+        valueList = RandList.OfType<int>().ToList(); //정수형으로 리스트를 만들엇 valueList에 넣는다.
+
+        //그래프 그리기
+        ShowGraph(valueList);
+
+        StartCoroutine("GenerateStockValue", valueList); // 새로운 데이터 생성하고 그래프 그리기
+
+        //CreateCircle(new Vector2(200, 200));
+
+
+
         // 리스트에 데이터를 반복적, 랜덤, 이전값을 참조해서 30%의 변화폭으로 생성,
         // 변화폭을 0~+-30%로 고정하고, 시키고 동시에 처음의 리스트값을 디스트로이한다. 리스트의 데이터양은 50개로만 한정한다.
         // 추가로 뉴스를 제공해서 생성되는 리스트값을 + - 방향으로 가중치를 줘서 변화폭에 영향을 준다. 
@@ -46,34 +70,50 @@ public class Window_Graph : MonoBehaviour
            }
         */
 
-
+        /*
         List<int> valueList; //valueList라는 이름으로 정수형 리스트를 선언하고
         valueList = new List<int>(); //리스트로 공간을 만들고
 
         int[] RandList = GetRandomInt(20, -30, 30); //주식값 생성함수 활용하여 20개를 생성한 후 
 
         valueList = RandList.OfType<int>().ToList(); //정수형으로 리스트를 만들엇 valueList에 넣는다.
+        */
 
-       
+
         //그래프 그리기
-        ShowGraph(valueList);
+        //ShowGraph(valueList);
 
         //리스트 생성값 확인하기
+        /*
         foreach (int value in valueList)
         {
             Debug.Log(value);
         }
+        */
 
         //이제 값을 리스트의 마지막부분에 추가하고, 동시에 맨 첫번째 리스트값은 삭제한다.
         //마지막에 추가한 값을 가지로 주식가격에 반영한다. 이건 계산필요.
 
         //AddNewValue(valueList); // 새로운 값이 추가되어 반영됨. !!!!FixedUpdata 코드에서 사용하였음
         //DeleteFirstListValue(valueList);//  !!!!FixedUpdata 코드에서 사용하였음
-        Run(valueList); // 데이터 생성, 삭제 반복실행
+        //Run(valueList); // 데이터 생성, 그래프 출력, 삭제 반복실행
 
     }
 
-    
+   IEnumerator GenerateStockValue(List<int> valueList)
+    {
+
+        Debug.Log("Start Coroutine 02");
+
+
+        while (true)
+        {
+            // 데이터 생성, 그래프 출력, 삭제 반복실행
+            Run(valueList);
+
+            yield return new WaitForSeconds(1.0f);
+        }
+    }
 
 
     //이건 이미 생성된 20개의 값을 가져오고, 그 값에 새로운 생성값을, 맨 뒤에 추가하는 메소드임
@@ -91,8 +131,7 @@ public class Window_Graph : MonoBehaviour
         Debug.Log("added new value");
         valueList.AddRange(postValueList); // 생성한 값을 preValueList 리스트의 마지막 값으로 추가한다.
 
-        Invoke("Run", 3.0f); // 반복적으로 함수 실
-        
+       //////// Invoke("Run", 3.0f); // 반복적으로 함수
 
     }
 
@@ -104,7 +143,8 @@ public class Window_Graph : MonoBehaviour
         Debug.Log("deleted the first value");
     }
 
-    
+
+
 
     //규칙적인 시간 간격으로 실행되는 함수로  awake 함수가 실행된 후 이것이 계속 실행되어 값을 생성, 그리고 그래프를 다시 그린다.
     public void Run(List<int> valueList)
@@ -112,16 +152,41 @@ public class Window_Graph : MonoBehaviour
 
         Debug.Log("Run");
 
+        // --- 그래프 지우기
+
+        //그래프를 지우자. 그런데 이러면 다 지워지는뎅,수정 전 리스트값을 지우고
+        //DeleteGraph(valueList);
+       // ForceUpdateRectTransforms();
+        //Destroy(gameObject.GetComponent<Renderer>()); //???????????????????어떻게 그래프를 지울 수 있을까??
+        //Debug.Log("delete graphContainer");
+        //그래프를 다시 그라묜 아무것도 안그려질거임
+        //ShowGraph(valueList);
+
+        //----- 그래프 지우기
+
+        //그리고 다시 그리면됨새로운 값으로...즉, 지우기전 리스트값을 기억해
+
+
         AddNewValue(valueList); // 새로운 값이 추가되어 반영됨
         DeleteFirstListValue(valueList); // 첫 데이터 삭제
-        //이전의 그래프를 모두 삭제(하려면) 오프젝트를 Destory해야하는데 그러면 스크립트 전체가 없어지기 때문에...
-        //데이터를 가지고 있는 상태에서 reload?
-        
-
-        //그래프를 다시 그리자자
+        //두번째 그래프 다시 그림
         ShowGraph(valueList);
-
+        
     }
+
+
+
+    //???????????   그래프 삭제가 문제.... !!!!!!!  이것만 하면 됨 ㅎㅎㅎㅎㅎ
+
+    //그래프를 삭제한다. 오브젝트를 Destory하고 다시 새로운 값으로 생성한다면?
+    public void DeleteGraph(List<int> valueList)
+    {
+        //List<int> deleteValueList = new List<int>();
+        valueList.Clear();
+    }
+
+
+
 
 
 
