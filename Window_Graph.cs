@@ -4,21 +4,25 @@ using UnityEngine;
 using UnityEngine.UI;
 using CodeMonkey.Utils;
 using System.Linq;
+using System;
 
 public class Window_Graph : MonoBehaviour
 {
 
     [SerializeField] private Sprite circleSprite;
     private RectTransform graphContainer;
+    public float destroyTime = 0.5f;
+
 
 
     public void Awake()
     {
 
-        Debug.Log("Start Coroutine 01");
-        //코루틴을 사용해서 데이터를 반복생성, 그래프그리기,  삭제 해보자
+        //Debug.Log("Start Coroutine 01");
+        //코루틴을 사용해서 데이터를 반복생성, 그래프그리기,
 
-
+        //삭제 해보자
+        
 
 
         graphContainer = transform.Find("graphContainer").GetComponent<RectTransform>();
@@ -33,6 +37,8 @@ public class Window_Graph : MonoBehaviour
 
         //그래프 그리기
         ShowGraph(valueList);
+
+        // 1초 딜레이하/
 
         StartCoroutine("GenerateStockValue", valueList); // 새로운 데이터 생성하고 그래프 그리기
 
@@ -103,7 +109,8 @@ public class Window_Graph : MonoBehaviour
    IEnumerator GenerateStockValue(List<int> valueList)
     {
 
-        Debug.Log("Start Coroutine 02");
+
+        //Debug.Log("Start Coroutine 02");
 
 
         while (true)
@@ -113,6 +120,7 @@ public class Window_Graph : MonoBehaviour
 
             yield return new WaitForSeconds(1.0f);
         }
+
     }
 
 
@@ -126,9 +134,17 @@ public class Window_Graph : MonoBehaviour
 
         int[] AddNewList = GetRandomInt(1, -30, 30); //추가할 리스트값을 하나 생성하고
 
+
+        /*새로 생성한 값을 가지로 주식투자결과를 연산할 것
+        매수금액 x 등락비율(%) = 평가금액
+        예수금 - 투자금액 = 잔액
+        판매금액
+        잔액 = 판매금액 +- 매수금ㅇ
+        */
+
         postValueList = AddNewList.OfType<int>().ToList();
         //추가되는 주식값을 추출, 메소드(이전값을 참조해서 랜덤으로 값 추출 - GetRandomInt 메소드 재활용)를 만들어서 추가할 것
-        Debug.Log("added new value");
+        //Debug.Log("added new value");
         valueList.AddRange(postValueList); // 생성한 값을 preValueList 리스트의 마지막 값으로 추가한다.
 
        //////// Invoke("Run", 3.0f); // 반복적으로 함수
@@ -140,7 +156,7 @@ public class Window_Graph : MonoBehaviour
     public void DeleteFirstListValue(List<int> valueList)
     {
         valueList.RemoveAt(0);//첫번째 값을 삭제
-        Debug.Log("deleted the first value");
+        //Debug.Log("deleted the first value");
     }
 
 
@@ -150,7 +166,7 @@ public class Window_Graph : MonoBehaviour
     public void Run(List<int> valueList)
     {
 
-        Debug.Log("Run");
+        //Debug.Log("Run");
 
         // --- 그래프 지우기
 
@@ -172,17 +188,49 @@ public class Window_Graph : MonoBehaviour
         //두번째 그래프 다시 그림
         ShowGraph(valueList);
         
+
+
     }
 
 
 
     //???????????   그래프 삭제가 문제.... !!!!!!!  이것만 하면 됨 ㅎㅎㅎㅎㅎ
 
-    //그래프를 삭제한다. 오브젝트를 Destory하고 다시 새로운 값으로 생성한다면?
-    public void DeleteGraph(List<int> valueList)
+
+
+    //그래프를 삭제한다. 오브젝트를 Destory하고 다시 새로운 값으로 생성한다면? >>>>>>>>>>>> 이건 사용하지 않/
+    IEnumerator DeleteGraph()
     {
-        //List<int> deleteValueList = new List<int>();
-        valueList.Clear();
+
+        Debug.Log("Start Coroutine 3, delete pre graph");
+
+        Destroy(GameObject.FindWithTag("dots"));
+        Destroy(GameObject.FindWithTag("lines"));
+
+
+        //GameObject[] objdot = GameObject.FindGameObjectsWithTag("dots");
+
+        //for (int j = 0; j < 21; j++)
+        //{
+        //    foreach (GameObject obdot in objdot)
+        //    {
+        //        Destroy(obdot, destroyTime2);
+        //    }
+
+        //}
+
+        //GameObject[] obj = GameObject.FindGameObjectsWithTag("lines");
+
+        //for (int k = 0; k < 21; k++)
+        //{
+        //    foreach (GameObject ob in obj)
+        //    {
+        //        Destroy(ob, destroyTime2);
+        //    }
+
+        //}
+
+        yield return new WaitForSeconds(1.0f);
     }
 
 
@@ -202,7 +250,7 @@ public class Window_Graph : MonoBehaviour
         {
             while (true)
             {
-                randArray[i] = Random.Range(min, max);
+                randArray[i] = UnityEngine.Random.Range(min, max);
                 isSame = false;
                 
                 for (int j = 0; j < i; ++j)
@@ -228,6 +276,7 @@ public class Window_Graph : MonoBehaviour
     private GameObject CreateCircle(Vector2 anchoredPosition)
     {
         GameObject gameObject = new GameObject("circle", typeof(Image));
+        gameObject.tag = "dots";
         gameObject.transform.SetParent(graphContainer, false);
         gameObject.GetComponent<Image>().sprite = circleSprite;
         RectTransform rectTransform = gameObject.GetComponent<RectTransform>();
@@ -245,22 +294,85 @@ public class Window_Graph : MonoBehaviour
         float xSize = 50f;
 
         GameObject lastCircleGameObject = null;
+        GameObject dotConnection = null;
+
         for (int i = 0; i < valueList.Count; i++)
         {
-            float xPosition = xSize + i * xSize;
-            float yPosition = (valueList[i] / yMaximum) * graphHeight;
+            float xPosition = xSize + i * xSize +30;
+            float yPosition = (valueList[i] / yMaximum) * graphHeight+180;
             GameObject circleGameObject = CreateCircle(new Vector2(xPosition, yPosition));
+
             if (lastCircleGameObject != null)
             {
+                //ㄹㅏ인 그리는것은 임시로 지
                 CreateDotConnection(lastCircleGameObject.GetComponent<RectTransform>().anchoredPosition, circleGameObject.GetComponent<RectTransform>().anchoredPosition);
+                
             }
+            else
+            {
+                Destroy(dotConnection, destroyTime); // 라인이 모두 생성되어  lastDotConnection의 값이 생성되면,  생성했던 dotconnection을 삭제한다.
+            }
+
+
             lastCircleGameObject = circleGameObject;
+            
+
+
+
+
+            Destroy(circleGameObject, destroyTime);//삭제한다. 4초후에 말이지...ㅎ
+
+            Debug.Log("showGraph");
+
+
+            
+
+            
+            //Destroy(GameObject.FindWithTag("ddddsasasaslines"), destroyTime);///////////////>>>>>>>>> 라인을 없앨 수 있는가?
+
+
+            //if (circleGameObject == null)
+            //{
+
+            //Destroy(GameObject.FindWithTag("lines")); //20개만 사라ㅈ
+            //} 
+
+
+            //if (circleGameObject == null)
+            //{
+            //    Debug.Log("delete lines");
+            //    Destroy(GameObject.FindWithTag("lines"));
+            //}
+
+
+            /*
+            GameObject[] obj = GameObject.FindGameObjectsWithTag("lines");
+            Debug.Log("delete lines");
+            for (int k = 0 ;  k < 10 ; k++)
+            {
+                
+                foreach (GameObject ob in obj)
+                {
+                    
+                    Destroy(ob, destroyTime2);
+                }
+                
+            }
+            */
+
+            // StartCoroutine("DeleteGraph");
+            // Destroy(GameObject.FindWithTag("dots"));
+
+
         }
     }
 
-    private void CreateDotConnection(Vector2 dotPositonA, Vector2 dotPositionB )
+
+
+    private void CreateDotConnection(Vector2 dotPositonA, Vector2 dotPositionB ) // 이 메소드로 그린 라인을 다시 없애야함, 닷이 사라질 때 같이 없애야 bool m_isDestroy = false;
     {
         GameObject gameObject = new GameObject("dotConnection", typeof(Image));
+        gameObject.tag = "lines";
         gameObject.transform.SetParent(graphContainer, false);
         gameObject.GetComponent<Image>().color = new Color(1, 1, 1, .5f);
         Vector2 dir = (dotPositionB - dotPositonA).normalized;
@@ -271,6 +383,8 @@ public class Window_Graph : MonoBehaviour
         rectTransform.sizeDelta = new Vector2(distance, 3f);
         rectTransform.anchoredPosition = dotPositonA + dir * distance * .5f;
         rectTransform.localEulerAngles = new Vector3(0, 0, UtilsClass.GetAngleFromVectorFloat(dir));
+        Destroy(gameObject, destroyTime);
+        
     }
 
 }
