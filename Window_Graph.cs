@@ -12,6 +12,7 @@ public class Window_Graph : MonoBehaviour
     [SerializeField] private Sprite circleSprite;
     private RectTransform graphContainer;
     public float destroyTime = 0.5f;
+    public float addValue;
 
 
 
@@ -134,7 +135,14 @@ public class Window_Graph : MonoBehaviour
 
         int[] AddNewList = GetRandomInt(1, -30, 30); //추가할 리스트값을 하나 생성하고
 
+        addValue = AddNewList[0]; ////////>>>>>>>>>>>>>>>>>>>>추가생성값은 GameManager.cs에 주식등락비율을 계산하기위해 addValue에 담음, 그런데 이 값은 리스트야, 리스트를 받아서 실수로 바꾸자.
 
+
+        Debug.Log("addValue:" + addValue);
+
+        gameObject.tag = "addValue"; //생성된 값에 tag를 달아주고,
+
+        Debug.Log(addValue);
         /*새로 생성한 값을 가지로 주식투자결과를 연산할 것
         매수금액 x 등락비율(%) = 평가금액
         예수금 - 투자금액 = 잔액
@@ -168,19 +176,6 @@ public class Window_Graph : MonoBehaviour
 
         //Debug.Log("Run");
 
-        // --- 그래프 지우기
-
-        //그래프를 지우자. 그런데 이러면 다 지워지는뎅,수정 전 리스트값을 지우고
-        //DeleteGraph(valueList);
-       // ForceUpdateRectTransforms();
-        //Destroy(gameObject.GetComponent<Renderer>()); //???????????????????어떻게 그래프를 지울 수 있을까??
-        //Debug.Log("delete graphContainer");
-        //그래프를 다시 그라묜 아무것도 안그려질거임
-        //ShowGraph(valueList);
-
-        //----- 그래프 지우기
-
-        //그리고 다시 그리면됨새로운 값으로...즉, 지우기전 리스트값을 기억해
 
 
         AddNewValue(valueList); // 새로운 값이 추가되어 반영됨
@@ -194,7 +189,6 @@ public class Window_Graph : MonoBehaviour
 
 
 
-    //???????????   그래프 삭제가 문제.... !!!!!!!  이것만 하면 됨 ㅎㅎㅎㅎㅎ
 
 
 
@@ -202,7 +196,7 @@ public class Window_Graph : MonoBehaviour
     IEnumerator DeleteGraph()
     {
 
-        Debug.Log("Start Coroutine 3, delete pre graph");
+        //Debug.Log("Start Coroutine 3, delete pre graph");
 
         Destroy(GameObject.FindWithTag("dots"));
         Destroy(GameObject.FindWithTag("lines"));
@@ -322,7 +316,7 @@ public class Window_Graph : MonoBehaviour
 
             Destroy(circleGameObject, destroyTime);//삭제한다. 4초후에 말이지...ㅎ
 
-            Debug.Log("showGraph");
+            //Debug.Log("showGraph");
 
 
             
